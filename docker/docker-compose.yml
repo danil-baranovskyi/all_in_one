@@ -1,0 +1,45 @@
+version: '3.5'
+
+services:
+
+  db:
+    container_name: postgres_db
+    image: postgres:13
+    environment:
+      POSTGRES_USER: ${DB_USER}       # Default superuser
+      POSTGRES_PASSWORD: ${DB_PASSWORD}   # Required superuser password
+      POSTGRES_DB: ${DB_DATABASE}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    ports:
+      - '5432:5432'
+    networks:
+      - app-network
+
+  app:
+    container_name: nest_backend
+    build:
+      context: ../packages/backend
+      dockerfile: ./docker/Dockerfile
+    ports:
+      - '3000:3000'
+    volumes:
+      - ../packages/backend:/app
+      - /app/node_modules
+    depends_on:
+      - db
+    networks:
+      - app-network
+    environment:
+      DB_HOST: ${DB_HOST}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_DATABASE: ${DB_DATABASE}
+      DB_PORT: ${DB_PORT}
+
+volumes:
+  postgres-data:
+
+networks:
+  app-network:
+    driver: bridge
